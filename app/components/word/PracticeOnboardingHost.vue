@@ -30,6 +30,11 @@ void props.dictId
 const route = useRoute()
 const settingStore = useSettingStore()
 
+// APK 内没有浏览器书签概念，不展示「收藏本站」引导
+const isApkBuild = typeof __IS_APK__ !== 'undefined' && __IS_APK__
+// EXE 桌面版跑在本地服务上，同样没有书签概念，不展示「收藏本站」引导
+const isDesktopBuild = typeof __IS_DESKTOP__ !== 'undefined' && __IS_DESKTOP__
+
 let showCollectNotice = $ref(false)
 let showConflictNotice2 = $ref(false)
 
@@ -42,7 +47,7 @@ defineExpose({
 })
 
 // 首次加载时显示提示
-if (!route.query.guide) {
+if (!route.query.guide && !isApkBuild && !isDesktopBuild) {
   setTimeout(() => {
     showCollectNotice = true
   }, 10000)
@@ -71,9 +76,11 @@ watchOnce(
               action() {
                 settingStore.first = false
                 tour.next()
-                setTimeout(() => {
-                  showCollectNotice = true
-                }, 10000)
+                if (!isDesktopBuild) {
+                  setTimeout(() => {
+                    showCollectNotice = true
+                  }, 10000)
+                }
               },
             },
           ],

@@ -27,6 +27,9 @@ import { watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getBrowserKey, useTTsPlayAudio } from '@/core/hooks/sound.ts'
 
+// APK 内设置页已被裁剪，不再弹出「前往设置选择 TTS 声色」提示
+const isApkBuild = typeof __IS_APK__ !== 'undefined' && __IS_APK__
+
 const { t: $t } = useI18n()
 
 interface IProps {
@@ -80,7 +83,7 @@ function noticePlaySentence(index: number) {
 }
 
 function playTtsWithGuide(text: string, onEnd?: () => void) {
-  if (!ttsVoiceHintShown) {
+  if (!ttsVoiceHintShown && !isApkBuild) {
     const hasVoice = settingStore.ttsVoiceMap?.some(v => v.key === getBrowserKey() && v.voice)
     if (!hasVoice) {
       ttsVoiceHintShown = true

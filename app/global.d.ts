@@ -1,6 +1,11 @@
 declare module 'node-forge'
 
 declare global {
+  // 由 apk/nuxt.config.ts 的 vite.define 注入，网页构建下不存在
+  const __IS_APK__: boolean
+  // 由 desktop/nuxt.config.ts 的 vite.define 注入，仅在 EXE 桌面版存在
+  const __IS_DESKTOP__: boolean
+
   interface Console {
     parse(v: any): void
 

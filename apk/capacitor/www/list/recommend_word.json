@@ -1,0 +1,51 @@
+[
+  {
+    "id": 1,
+    "enName": "cet4",
+    "name": "CET-4",
+    "description": "大学英语四级词库",
+    "categoryId": 1,
+    "url": "CET4_T.json",
+    "length": 2607,
+    "language": "en",
+    "translateLanguage": "zh_CN",
+    "version": 1,
+    "type": "word",
+    "isDefault": false,
+    "recommended": true,
+    "userId": "00000000-0000-0000-0000-000000000001",
+    "createdAt": "2026-05-10 03:10:19.294875",
+    "updatedAt": "2026-06-03 15:27:15.113708",
+    "cover": null,
+    "hidden": false,
+    "category": "中国考试",
+    "tags": [
+      "大学英语"
+    ]
+  },
+  {
+    "id": 2,
+    "enName": "gaozhong",
+    "name": "高中英语",
+    "description": "高中英语必修+选修词汇（人教版教材词表，含课文词组）",
+    "categoryId": 1,
+    "url": "GAOZHONG.json",
+    "length": 2366,
+    "language": "en",
+    "translateLanguage": "zh_CN",
+    "version": 1,
+    "type": "word",
+    "isDefault": false,
+    "recommended": true,
+    "hidden": false,
+    "category": "中国考试",
+    "tags": [
+      "高中英语",
+      "高考"
+    ],
+    "createdAt": "2026-11-16 00:00:00",
+    "updatedAt": "2026-11-16 00:00:00",
+    "userId": "00000000-0000-0000-0000-000000000001",
+    "cover": null
+  }
+]

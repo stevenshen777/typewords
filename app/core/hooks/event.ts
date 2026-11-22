@@ -146,6 +146,11 @@ export function useEventListener(type: string, listener: EventListenerOrEventLis
 
       const hiddenInput = ensureMobileInput()
       let isComposing = false
+      // 软键盘（尤其 Android WebView）按退格时，IME 不会派发 keydown，
+      // 只有当输入框「有内容可删」时才会触发 input(deleteContentBackward)。
+      // 因此不主动清空输入框，而是维护一份缓冲，用值的增减来派发字母/退格，
+      // 这样无论 Gboard 走组合输入还是直接插入，退格都能正确回退到上一个字母。
+      let lastValue = ''
 
       const createSyntheticEvent = (payload: { key: string; code?: string; keyCode: number }) => {
         const base = {
@@ -171,71 +176,96 @@ export function useEventListener(type: string, listener: EventListenerOrEventLis
         invokeListener(createSyntheticEvent(payload))
       }
 
+      /** 派发单个字符，并与物理按键事件做去重 */
+      const dispatchChar = (char: string) => {
+        if (!char) return
+        if (emitWindowsKeys.has(char)) return
+        emitInputKeys.add(char)
+        setTimeout(() => emitInputKeys.delete(char), 30)
+        const keyCode =
+          char === 'Backspace' ? 8 : char === ' ' ? 32 : char.toUpperCase().charCodeAt(0)
+        dispatchSyntheticKey({ key: char, code: charToCode(char), keyCode })
+      }
+
+      const resetBuffer = () => {
+        lastValue = ''
+        if (hiddenInput.value) hiddenInput.value = ''
+      }
+
+      const commonPrefixLength = (a: string, b: string) => {
+        let i = 0
+        while (i < a.length && i < b.length && a.charCodeAt(i) === b.charCodeAt(i)) i++
+        return i
+      }
+
+      // 用输入框值的变化量来派发字母 / 退格：
+      // - 值变长 → 派发新增的字符（保持逐字变绿）
+      // - 值变短 → 派发等量退格（修复软键盘退格无法回退）
+      const applyValueDiff = (value: string) => {
+        if (value === lastValue) return
+        const prefix = commonPrefixLength(lastValue, value)
+        const removedCount = lastValue.length - prefix
+        for (let i = 0; i < removedCount; i++) {
+          dispatchChar('Backspace')
+        }
+        const added = value.slice(prefix)
+        let typedSpace = false
+        for (const ch of added) {
+          if (ch === ' ') typedSpace = true
+          // 只上屏英文可输入字符，避免中文候选 / 表情进入单词
+          if (!/[A-Za-z0-9 .,'\-]/.test(ch)) continue
+          dispatchChar(ch)
+        }
+        lastValue = value
+        // 空格结束当前单词，清空缓冲，避免退格误入上一个单词
+        if (typedSpace) resetBuffer()
+      }
+
       const handleCompositionStart = () => {
-        // console.log('handleCompositionStart',Date.now())
         isComposing = true
-        Toast.warning('请切换到英文输入')
       }
 
       const handleCompositionEnd = (event: CompositionEvent) => {
+        const data = event.data ?? ''
         isComposing = false
-        if (!event.data) {
-          hiddenInput.value = ' '
-          return
+        // 中文等非英文组合输入上屏时提示切换英文输入法
+        if (/[^\x20-\x7E]/.test(data)) {
+          Toast.warning('请切换到英文输入')
+          resetBuffer()
         }
-        for (const char of event.data) {
-          const keyCode = char === ' ' ? 32 : char.toUpperCase().charCodeAt(0)
-          dispatchSyntheticKey({
-            key: char,
-            code: charToCode(char),
-            keyCode,
-          })
-        }
-        hiddenInput.value = ' '
       }
 
       const handleInput = (event: InputEvent) => {
-        // console.log('handleInput',event,Date.now())
-        if (isComposing) return
+        // 桌面端由物理键盘 keydown 直接处理，这里只服务移动 / APK 软键盘
+        if (!isMobile()) return
         const target = event.target as HTMLInputElement | null
         if (!target) return
-        let char = ''
-        let keyCode = -1
-        if (event.inputType === 'deleteContentBackward') {
-          char = 'Backspace'
-          keyCode = 8
-        } else {
-          char = target?.value?.slice(-1) || (event as any).data?.slice(-1)
-          keyCode = char === ' ' ? 32 : char.toUpperCase().charCodeAt(0)
-        }
-        if (emitWindowsKeys.has(char)) return
-        // console.log('handleInput', Date.now(), emitWindowsKeys)
-        emitInputKeys.add(char)
-        setTimeout(() => emitInputKeys.delete(char), 30)
-        dispatchSyntheticKey({ key: char, code: charToCode(char), keyCode })
-        target.value = ' '
+        applyValueDiff(target.value ?? '')
       }
+
+      // 切换到下一个单词（或重置）时清空缓冲，防止退格作用到旧单词
+      emitter.on(EventKey.resetWord, resetBuffer)
+      registerCleanup(() => emitter.off(EventKey.resetWord, resetBuffer))
+
+      const isPracticePage = () => /\/practice/.test(`${window.location.pathname}${window.location.hash}`)
 
       const handleFocusRequest = (event: MouseEvent | TouchEvent) => {
         const target = event.target as HTMLElement | null
         if (!target) return
-        if (!window.location.pathname.includes('/practice')) return
+        // hash 路由下 location.pathname 不含 /practice，需要一并判断 hash
+        if (!isPracticePage()) return
         const typingWord = target.closest('#PracticeArea')
         if (!typingWord) return
-        if (target.closest('input, textarea, select, [contenteditable="true"]')) return false
-        if (!getSelectedText()) {
-          window.setTimeout(() => hiddenInput.focus(), 160)
-        }
+        if (target.closest('input, textarea, select, [contenteditable="true"]')) return
+        if (getSelectedText()) return
+        // 安卓/Pad 的软键盘必须在用户手势内调用 focus 才会弹出，
+        // 先同步聚焦一次，再兜底延迟聚焦，避免键盘被系统收回后无法再次唤起
+        hiddenInput.focus()
+        window.setTimeout(() => hiddenInput.focus(), 160)
       }
 
       const windowListener = (e: KeyboardEvent) => {
-        // if (e.code in CODE_TO_CHAR && !e.ctrlKey && !e.metaKey) return
-        // return
-        // console.log('windowListener', Date.now(), e)
         if (e.key === 'Process') {
-          // @ts-ignore
-          // e.key = CODE_TO_CHAR[e.code]
-          //todo 这里不能直接设置值，会报错，后续可以用合成事件优化
           return
         }
         if (emitInputKeys.has(e.key)) return
@@ -250,6 +280,16 @@ export function useEventListener(type: string, listener: EventListenerOrEventLis
 
       hiddenInput.addEventListener('compositionend', handleCompositionEnd)
       registerCleanup(() => hiddenInput.removeEventListener('compositionend', handleCompositionEnd))
+
+      // 软键盘弹出时给根节点打标记，供 APK 布局收起顶部栏/底部工具栏，保证单词始终可见
+      const onHiddenInputFocus = () => document.documentElement.classList.add('soft-keyboard-open')
+      const onHiddenInputBlur = () => document.documentElement.classList.remove('soft-keyboard-open')
+
+      hiddenInput.addEventListener('focus', onHiddenInputFocus)
+      registerCleanup(() => hiddenInput.removeEventListener('focus', onHiddenInputFocus))
+
+      hiddenInput.addEventListener('blur', onHiddenInputBlur)
+      registerCleanup(() => hiddenInput.removeEventListener('blur', onHiddenInputBlur))
 
       hiddenInput.addEventListener('input', handleInput, { capture: true })
       registerCleanup(() => hiddenInput.removeEventListener('input', handleInput, { capture: true }))

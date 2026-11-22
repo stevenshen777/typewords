@@ -377,10 +377,14 @@ async function startPractice(query = {}) {
   nav('practice-words/' + store.sdict.id, query, { taskWords: currentStudy })
 }
 
+// APK 版跳过「学习设置」确认弹窗，点击学习直接使用默认设置开始
+const isApkBuild = typeof __IS_APK__ !== 'undefined' && __IS_APK__
+
 async function addMyStudyList() {
   if (!runtimeStore.editDict.words.length) {
     return Toast.warning('没有单词可学习！')
   }
+  if (isApkBuild) return startPractice()
   showPracticeSettingDialog = true
 }
 

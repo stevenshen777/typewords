@@ -1,0 +1,1 @@
+import{Ot as e,P as t,j as n,nt as r}from"./C87W1sVL.js";var i={viewBox:`0 0 16 16`,width:`1.2em`,height:`1.2em`};function a(e,a){return r(),t(`svg`,i,[...a[0]||=[n(`path`,{fill:`currentColor`,d:`M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2`},null,-1)]])}var o=e({name:`fluent-add16-regular`,render:a});export{o as t};

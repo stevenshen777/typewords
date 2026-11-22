@@ -1,0 +1,72 @@
+[
+  {
+    "word": "abandon",
+    "phonetic0": "/əˈbændən/",
+    "phonetic1": "/əˈbændən/",
+    "trans": [
+      { "pos": "v.", "cn": "放弃；抛弃；遗弃" },
+      { "pos": "n.", "cn": "放任；放纵" }
+    ],
+    "sentences": [
+      {
+        "c": "They had to abandon the car and walk the rest of the way.",
+        "cn": "他们不得不弃车，步行剩下的路程。"
+      }
+    ],
+    "phrases": [
+      { "c": "abandon oneself to", "cn": "沉溺于；纵情于" },
+      { "c": "abandon ship", "cn": "弃船" }
+    ],
+    "synos": [
+      { "pos": "v.", "cn": "放弃；抛弃", "ws": ["desert", "give up", "quit", "forsake"] }
+    ],
+    "relWords": {
+      "root": "band",
+      "rels": [
+        {
+          "pos": "n.",
+          "words": [
+            { "c": "abandonment", "cn": "放弃；遗弃" }
+          ]
+        }
+      ]
+    },
+    "etymology": [
+      { "t": "词源", "d": "源自古法语 a bandon，意为“置于他人控制之下”，后引申为“任其自流、放弃”。" }
+    ]
+  },
+  {
+    "word": "resilient",
+    "phonetic0": "/rɪˈzɪliənt/",
+    "phonetic1": "/rɪˈzɪliənt/",
+    "trans": [
+      { "pos": "adj.", "cn": "有弹性的；能迅速恢复的；适应力强的" }
+    ],
+    "sentences": [
+      {
+        "c": "Children are often more resilient than adults expect.",
+        "cn": "孩子的恢复力往往超出成年人的预期。"
+      }
+    ],
+    "phrases": [
+      { "c": "resilient economy", "cn": "有韧性的经济" }
+    ],
+    "synos": [
+      { "pos": "adj.", "cn": "有韧性的", "ws": ["tough", "flexible", "hardy"] }
+    ],
+    "relWords": {
+      "root": "sil",
+      "rels": [
+        {
+          "pos": "n.",
+          "words": [
+            { "c": "resilience", "cn": "韧性；恢复力" }
+          ]
+        }
+      ]
+    },
+    "etymology": [
+      { "t": "词源", "d": "源自拉丁语 resilire，意为“跳回、弹回”，re-（回）+ salire（跳）。" }
+    ]
+  }
+]

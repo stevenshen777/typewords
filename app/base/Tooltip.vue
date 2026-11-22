@@ -63,8 +63,18 @@ export default {
       </Transition>
 
       <DefaultNode
-        onmouseenter={(e) => this.showPop(e)}
-        onmouseleave={() => this.show = false}
+        onpointerenter={(e) => {
+          // 触摸设备（平板/手机）不展示悬浮提示，避免点击图标后提示常驻页面
+          if (e.pointerType !== 'mouse') {
+            this.show = false
+            return
+          }
+          this.showPop(e)
+        }}
+        onpointerleave={() => this.show = false}
+        onpointerdown={(e) => {
+          if (e.pointerType !== 'mouse') this.show = false
+        }}
       />
     </>
   }

@@ -24,6 +24,9 @@ const nextWord: Word | null = $computed(() => {
 })
 
 const settingStore = useSettingStore()
+
+// APK 内不展示「无法输入？」悬浮提示
+const isApkBuild = typeof __IS_APK__ !== 'undefined' && __IS_APK__
 </script>
 
 <template>
@@ -40,7 +43,11 @@ const settingStore = useSettingStore()
       </div>
     </Tooltip>
 
-    <div class="center gap-1 absolute w-full cp" v-if="settingStore.showConflictNotice2" @click="emit('openNotice')">
+    <div
+      class="center gap-1 absolute w-full cp"
+      v-if="settingStore.showConflictNotice2 && !isApkBuild"
+      @click="emit('openNotice')"
+    >
       <IconFluentQuestionCircle20Regular />
       <span class="">无法输入？</span>
     </div>

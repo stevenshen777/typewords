@@ -150,14 +150,25 @@ export function resetActiveWordPlayCount(word: string) {
 }
 
 let cachedWordAudio: HTMLAudioElement | null = null
+let cachedTtsAudio: HTMLAudioElement | null = null
 let wordPlaybackGeneration = 0
 let ttsPlaybackGeneration = 0
+
+// APK 内 WebView 不提供可用的 speechSynthesis 声色，例句/短语改用在线发音接口
+const isApkBuild = typeof __IS_APK__ !== 'undefined' && __IS_APK__
 
 function getCachedWordAudio(): HTMLAudioElement | null {
   if (!cachedWordAudio && typeof Audio !== 'undefined') {
     cachedWordAudio = new Audio()
   }
   return cachedWordAudio
+}
+
+function getCachedTtsAudio(): HTMLAudioElement | null {
+  if (!cachedTtsAudio && typeof Audio !== 'undefined') {
+    cachedTtsAudio = new Audio()
+  }
+  return cachedTtsAudio
 }
 
 export function cancelWordPracticeAudio() {
@@ -173,6 +184,14 @@ export function cancelWordPracticeAudio() {
     wordAudio.onerror = null
     wordAudio.pause()
     wordAudio.currentTime = 0
+  }
+  // 同时打断正在播放的例句/短语音频
+  const ttsAudio = getCachedTtsAudio()
+  if (ttsAudio) {
+    ttsAudio.onended = null
+    ttsAudio.onerror = null
+    ttsAudio.pause()
+    ttsAudio.currentTime = 0
   }
 }
 
@@ -255,8 +274,40 @@ export interface TTsPlayOptions {
 export function useTTsPlayAudio() {
   const settingStore = useSettingStore()
 
+  /**
+   * APK 内使用在线发音接口播放句子/短语：
+   * 与单词发音同源（有道 dictvoice），不依赖 WebView 的系统 TTS 支持
+   */
+  function playRemote(text: string, options: TTsPlayOptions) {
+    const audio = getCachedTtsAudio()
+    if (!audio) return
+    const generation = ++ttsPlaybackGeneration
+    audio.pause()
+    audio.onended = () => {
+      if (generation !== ttsPlaybackGeneration) return
+      options.onEnd?.()
+    }
+    audio.onerror = () => {
+      if (generation !== ttsPlaybackGeneration) return
+      options.onEnd?.()
+    }
+    const type = settingStore.soundType === 'uk' ? 1 : 2
+    audio.src = `${PronunciationApi}${encodeURIComponent(text)}&type=${type}`
+    audio.volume = options.volume ?? settingStore.wordSoundVolume / 100
+    audio.playbackRate = options.rate ?? settingStore.wordSoundSpeed
+    void audio.play().catch(() => {
+      if (generation !== ttsPlaybackGeneration) return
+      options.onEnd?.()
+    })
+  }
+
   function play(text: string, options: TTsPlayOptions = {}) {
-    if (!text || typeof speechSynthesis === 'undefined') return
+    if (!text) return
+    if (isApkBuild) {
+      playRemote(text, options)
+      return
+    }
+    if (typeof speechSynthesis === 'undefined') return
     const generation = ++ttsPlaybackGeneration
     speechSynthesis.cancel() // 防止 Chrome 队列卡死
     let msg = new SpeechSynthesisUtterance(text)

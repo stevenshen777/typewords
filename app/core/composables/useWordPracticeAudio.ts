@@ -8,6 +8,9 @@ import { WordPlayTrigger } from '../types/enum'
 
 export { WordPlayTrigger } from '../types/enum'
 
+// APK 内设置页已被裁剪，不再弹出「前往设置选择 TTS 声色」提示
+const isApkBuild = typeof __IS_APK__ !== 'undefined' && __IS_APK__
+
 const CHAIN_FIRST_SENTENCE_TRIGGERS = new Set([
   WordPlayTrigger.NewWord,
   WordPlayTrigger.RepeatWord,
@@ -42,7 +45,7 @@ export function useWordPracticeAudio({ word, volumeIconRef, canSeeSentences }: W
   }
 
   function playTtsWithGuide(text: string, onEnd?: () => void) {
-    if (!ttsVoiceHintShown) {
+    if (!ttsVoiceHintShown && !isApkBuild) {
       const browserKey = getBrowserKey()
       const hasVoice = settingStore.ttsVoiceMap?.some(v => v.key === browserKey && v.voice)
       if (!hasVoice) {

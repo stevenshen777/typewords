@@ -36,6 +36,9 @@ import { usePracticeTypeWordController } from '@/core/composables/practice-words
 
 const { t: $t } = useI18n()
 
+// APK 精简版没有设置入口：关闭「单词读完自动串播首条例句」
+const isApkBuild = typeof __IS_APK__ !== 'undefined' && __IS_APK__
+
 interface IProps {
   word: Word
   question?: Question | null
@@ -76,7 +79,7 @@ const typeWordController = usePracticeTypeWordController({
   getPracticeType: () => props.practiceType,
   getPhaseKey: () => props.phaseKey,
   getIsWordMasked: () => effective.value.isWordMasked,
-  getAutoPlayFirstSentence: () => settingStore.autoPlayFirstSentence,
+  getAutoPlayFirstSentence: () => settingStore.autoPlayFirstSentence && !isApkBuild,
   onWrong: source => emit('wrong', source),
   playWordAudio: (word, manual, onEnd) =>
     playWordAudio(word, manual, onEnd, () => {
