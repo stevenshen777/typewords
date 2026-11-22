@@ -62,12 +62,6 @@ node desktop\build-exe.mjs --reuse   # 复用已有站点文件，只重编译 e
 
 ## Project Introduction
 
-<https://www.bilibili.com/video/BV1QwYv6eEAS>
-
-## Online Access
-
-<https://typewords.cc>
-
 <img width="1920" height="1440" alt="practice words" src="/public/imgs/words.png" />
 <img width="1920" height="1440" alt="practice articles" src="/public/imgs/articles.png" />
 
@@ -143,7 +137,4 @@ Thank you again for your contributions!
 ## ❤️ Support TypeWords
 If TypeWords has been helpful to you, feel free to sponsor the project to support server operation and future development.  
 Of course, sponsorship is not required for use—sharing the project, submitting feedback, or contributing code are also highly valuable forms of support.
-
-<img width="300" height="390" alt="practice words" src="/public/imgs/zhifubao.png" />
-<img width="300" height="390" alt="practice words" src="/public/imgs/weixin.png" />
 
